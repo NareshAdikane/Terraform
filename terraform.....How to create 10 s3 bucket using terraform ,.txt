@@ -1,0 +1,42 @@
+TOPIC :- How to create 10 s3 bucket using terraform ,
+         with  red-only permission
+
+https://paulkamau.medium.com/terraform-tips-how-to-create-multiple-aws-s3-buckets-with-a-single-resource-config-c89c460a1aa6
+ 
+
+1)provider.tf
+
+  provider "aws" {
+  region = "us-east-2"
+  profile = "tf-naresh"
+}
+
+2) MAIN.TF
+
+resource "aws_s3_bucket" "rugged_buckets" {
+  count         = length(var.s3_bucket_names) 
+  bucket        = var.s3_bucket_names[count.index]
+ 
+}
+
+3) var.tf
+
+variable "s3_bucket_names" {
+  type = list
+  default = ["bucket1.app", 
+             "bucket2.app", 
+             "bucket3.app",
+             "bucket4.app",
+             "bucket5.app", 
+             "bucket6.app", 
+             "bucket7.app",
+             "bucket8.app",
+             "bucket9.app", 
+             "bucket10.app",
+            ]
+}
+
+
+terraform init
+terraform plan 
+terraform apply --aoto-approove

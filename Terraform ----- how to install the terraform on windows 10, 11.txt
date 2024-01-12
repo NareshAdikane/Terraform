@@ -1,0 +1,23 @@
+Topic: How to install Terraform on windows 10, 11?
+
+1. Goto the browser and download the terraform zip file using below link: (there click 386 named version)
+
+https://developer.hashicorp.com/terraform/downloads
+
+2. after downloding the zip fil extract it and move the extracted terraform folder to C drive.
+
+3. then go into the terraform folder which you have moved to c 
+
+4. copy the path of that folder 
+C:\terraform_1.6.1_windows_386
+
+5. then, search environment variable in search box > select environment variable in Advance 
+	  > system variables : select path > click edit > click new > paste the link > ok > ok > ok 
+
+6. search powershell > type terraform --version .
+
+7. you will see : Terraform v1.6.1
+			   on windows_386
+
+Hence, you have installed terraform successfully.
+

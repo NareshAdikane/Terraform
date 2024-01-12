@@ -1,0 +1,217 @@
+Topic: How to create EC2 instance using terraform?
+
+Steps:
+terraform apply --auto-approve
+terraform destroy --auto-appove
+
+1. create new dir. named as Instance
+
+2. create file main.tf and provider.tf
+
+3. $ aws configure --profile tf-navez
+AWS Access Key ID [None]: ************
+AWS Secret Access Key [None]: *******************
+Default region name [None]: us-east-2
+Default output format [None]: json
+
+
+4. In provider.tf file:
+
+provider "aws" {
+  region = "us-east-2"
+  profile = "tf-navez"
+}
+
+
+5. In main.tf file:
+
+resource "aws_instance" "web" {
+  ami           = "< paste default id >"
+  instance_type = "t2.micro"
+  #security_groups = [aws_security_group.security_grp.name]  ------{after adding security grp add this line here}
+
+  tags = {
+    Name = "Server"
+  }
+}
+
+
+6. #terraform plan
+7. #terraform apply --auto-approve
+
+8. now, we will add security group in our sg:  ------ {after adding these lines add security grp in resource.}
+
+resource "aws_security_group" "security_grp" {
+  name        = "server_sg"
+  description = "This is created by terraform"
+  vpc_id      = "vpc-0665643b7a8db6739"
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+   
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "terraform-sg"
+  }
+}
+
+
+9.  #terraform plan 
+10. #terraform apply --auto-approve
+11. #terraform destroy 
+
+
+
+
+
+
+
+
+
+
+		---------History----------
+
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform
+$ cd Instance/
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/Instance
+$ ls
+main.tf  provider.tf
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/Instance
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding latest version of hashicorp/aws...
+- Installing hashicorp/aws v5.21.0...
+- Installed hashicorp/aws v5.21.0 (signed by HashiCorp)
+
+Terraform has created a lock file .terraform.lock.hcl to record the provider
+selections it made above. Include this file in your version control repository
+so that Terraform can guarantee to make the same selections by default when
+you run "terraform init" in the future.
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+
+
+$ aws configure --profile tf-navez
+AWS Access Key ID [None]: **********
+AWS Secret Access Key [None]: **************
+Default region name [None]: us-east-2
+Default output format [None]: json
+
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/Instance
+$ terraform plan
+
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/Instance
+$ terraform apply 
+
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+aws_instance.web: Creating...
+aws_instance.web: Still creating... [10s elapsed]
+aws_instance.web: Still creating... [20s elapsed]
+aws_instance.web: Still creating... [30s elapsed]
+aws_instance.web: Creation complete after 37s [id=i-0c6104862ae416e11]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+		------------------after adding securtiy grp.-----------------------
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/Instance
+$ terraform plan 
+
+Plan: 2 to add, 0 to change, 1 to destroy.
+
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/Instance
+$ terraform apply --auto-approve
+
+aws_instance.web: Refreshing state... [id=i-0c6104862ae416e11]
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:        
+  + create
+-/+ destroy and then create replacement
+
+Terraform will perform the following actions:
+
+  # aws_instance.web must be replaced
+
+Plan: 2 to add, 0 to change, 1 to destroy.
+aws_instance.web: Destroying... [id=i-0c6104862ae416e11]
+aws_instance.web: Still destroying... [id=i-0c6104862ae416e11, 10s elapsed]
+aws_instance.web: Still destroying... [id=i-0c6104862ae416e11, 20s elapsed]
+aws_instance.web: Still destroying... [id=i-0c6104862ae416e11, 30s elapsed]
+aws_instance.web: Destruction complete after 33s
+aws_security_group.security_grp: Creating...
+aws_security_group.security_grp: Creation complete after 6s [id=sg-0a46ad8c64ace4576]
+aws_instance.web: Creating...
+aws_instance.web: Still creating... [10s elapsed]
+aws_instance.web: Still creating... [20s elapsed]
+aws_instance.web: Creation complete after 26s [id=i-01cee80bcd2befecb]
+
+Apply complete! Resources: 2 added, 0 changed, 1 destroyed.
+
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/Instance
+$ terraform destroy
+aws_security_group.security_grp: Refreshing state... [id=sg-0a46ad8c64ace4576]
+aws_instance.web: Refreshing state... [id=i-01cee80bcd2befecb]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+Plan: 0 to add, 0 to change, 2 to destroy.
+
+Do you really want to destroy all resources?
+  Terraform will destroy all your managed infrastructure, as shown above.
+  There is no undo. Only 'yes' will be accepted to confirm.
+
+  Enter a value: yes
+
+aws_instance.web: Destroying... [id=i-01cee80bcd2befecb]
+aws_instance.web: Still destroying... [id=i-01cee80bcd2befecb, 10s elapsed]
+aws_instance.web: Still destroying... [id=i-01cee80bcd2befecb, 20s elapsed]
+aws_instance.web: Still destroying... [id=i-01cee80bcd2befecb, 30s elapsed]
+aws_instance.web: Destruction complete after 32s
+aws_security_group.security_grp: Destroying... [id=sg-0a46ad8c64ace4576]
+aws_security_group.security_grp: Destruction complete after 2s
+
+Destroy complete! Resources: 2 destroyed.
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/Instance
+$

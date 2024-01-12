@@ -1,0 +1,322 @@
+variables in terraform 
+Topic: Creating IAM user using variable [In string type]?		
+		
+---------{ String type: 1 key = 1 value }-----------
+Steps:
+
+1. create new folder(variables)
+2. create 3 files (main.tf, variable.tf, provider.tf)
+
+3. variable.tf:
+
+variable "iam_user_name" {
+  type = string
+  default = "dev1"  -------(name of user)
+}
+
+
+variable "user_path" {
+  type = string
+  default = "/system"
+}
+
+4. main.tf:
+
+resource "aws_iam_user" "user7"{
+  name = var.iam_user_name
+  path = var.user_path
+  tags = {
+    Team = "software development" ---------(key and value)
+  }
+}
+
+5. provider.tf:
+{if you have not set the profile using aws configure thene first do it by following below cmd:
+aws configure --profile <your name> }
+
+provider "aws" {
+  region = "us-east-2"
+  profile = "tf-navez"
+}
+
+6. #terraform init 
+7. #terraform plan 
+8. #terraform apply --auto-approve.
+
+9. now go and check the aws IAM console > user > tags you will see the tag with team and value software development.
+
+
+
+----------------------History--------------------------
+
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform
+$ ls
+basic/  Instance/  variables/
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform
+$ cd variables/
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$ ls
+main.tf  provider.tf  variable.tf
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+
+Terraform has been successfully initialized!
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$ terraform plan
+
+Terraform will perform the following actions:
+
+  # aws_iam_user.user7 will be created
+  + resource "aws_iam_user" "user7" {
+      + arn           = (known after apply)
+      + force_destroy = false
+      + id            = (known after apply)
+      + name          = "dev1"
+      + path          = "/"
+      + tags          = {
+          + "Team" = "software development"
+        }
+      + tags_all      = {
+          + "Team" = "software development"
+        }
+      + unique_id     = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$ terraform apply --auto-approve
+
+
+Terraform will perform the following actions:
+
+  # aws_iam_user.user7 will be created
+  + resource "aws_iam_user" "user7" {
+      + arn           = (known after apply)
+      + force_destroy = false
+      + id            = (known after apply)
+      + name          = "dev1"
+      + path          = "/"
+      + tags          = {
+          + "Team" = "software development"
+        }
+      + tags_all      = {
+          + "Team" = "software development"
+        }
+      + unique_id     = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+aws_iam_user.user7: Creating...
+aws_iam_user.user7: Creation complete after 2s [id=dev1]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$
+
+
+---------------------------------------------------------------------
+
+---------{ list type: 1 key = multiple value }-----------
+
+steps:
+ 
+1. use same variable.tf write code below:
+variable.tf:
+variable "user-list" {
+  type = list
+  default = ["u1", "u2", "u3", "u4"]
+}
+
+2. main.tf:          
+resource "aws_iam_user" "user7"{
+  name = var.user-list[2]   ----------(this will the username to u3)
+  tags = {
+    Team = "software development"
+  }
+}
+
+3. #terraform plan 
+4. #terraform apply --auto-approve
+
+5. now, goto the IAM console > user > you will see the name dev1 has been changed to u3.
+
+
+
+
+--------------History------------------
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$ terraform plan
+aws_iam_user.user7: Refreshing state... [id=dev1]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:        
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # aws_iam_user.user7 will be updated in-place
+  ~ resource "aws_iam_user" "user7" {
+        id            = "dev1"
+      ~ name          = "dev1" -> "u3"
+        tags          = {
+            "Team" = "software development"
+        }
+        # (5 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$ terraform apply --auto-approve
+aws_iam_user.user7: Refreshing state... [id=dev1]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:        
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # aws_iam_user.user7 will be updated in-place
+  ~ resource "aws_iam_user" "user7" {
+        id            = "dev1"
+      ~ name          = "dev1" -> "u3"
+        tags          = {
+            "Team" = "software development"
+        }
+        # (5 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+aws_iam_user.user7: Modifying... [id=dev1]
+aws_iam_user.user7: Modifications complete after 1s [id=u3]
+
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$
+
+
+--------------------------------------------------------------------------
+
+---------{ Map type: multiple key = multiple value }-----------
+
+Steps: 
+variable.tf:
+variable "Tags" {
+  type = map
+  default = {
+    "Team" = "S/W developers"
+    "User" = "Abc"
+    "Naresh" = "hatmode"
+
+  }
+}
+main.tf:
+resource "aws_iam_user" "user1"{
+  name = var.user-list[2]
+ 
+  tags = var.Tags
+}
+
+#terraform plan 
+#terraform apply --auto-approve
+
+now, goto the aws IAM console and check the tag section of user you will find the new key and values are added there.
+
+-------------------History------------------
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$ terraform plan
+aws_iam_user.user7: Refreshing state... [id=u3]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:        
+  + create
+  - destroy
+
+Terraform will perform the following actions:
+
+  # aws_iam_user.user1 will be created
+  + resource "aws_iam_user" "user1" {
+      + arn           = (known after apply)
+      + force_destroy = false
+      + id            = (known after apply)
+      + name          = "u3"
+      + path          = "/system"
+      + tags          = {
+          + "Naresh" = "hatmode"
+          + "Team"   = "S/W developers"
+          + "User"   = "Abc"
+        }
+      + tags_all      = {
+          + "Naresh" = "hatmode"
+          + "Team"   = "S/W developers"
+          + "User"   = "Abc"
+        }
+      + unique_id     = (known after apply)
+    }
+
+  # aws_iam_user.user7 will be destroyed
+  # (because aws_iam_user.user7 is not in configuration)
+  - resource "aws_iam_user" "user7" {
+      - arn           = "arn:aws:iam::939478585594:user/u3" -> null
+      - force_destroy = false -> null
+      - id            = "u3" -> null
+      - name          = "u3" -> null
+      - path          = "/" -> null
+      - tags          = {
+          - "Team" = "software development"
+        } -> null
+      - tags_all      = {
+          - "Team" = "software development"
+        } -> null
+      - unique_id     = "AIDA5VPKJSD5JN3ZHK36A" -> null
+    }
+
+Plan: 1 to add, 0 to change, 1 to destroy.
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$ terraform apply --auto-approve
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:        
+  + create
+
+Terraform will perform the following actions:
+
+  # aws_iam_user.user1 will be created
+  + resource "aws_iam_user" "user1" {
+      + arn           = (known after apply)
+      + force_destroy = false
+      + id            = (known after apply)
+      + name          = "u3"
+      + path          = "/"
+      + tags          = {
+          + "Naresh" = "hatmode"
+          + "Team"   = "S/W developers"
+          + "User"   = "Abc"
+        }
+      + tags_all      = {
+          + "Naresh" = "hatmode"
+          + "Team"   = "S/W developers"
+          + "User"   = "Abc"
+        }
+      + unique_id     = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+aws_iam_user.user1: Creating...
+aws_iam_user.user1: Creation complete after 2s [id=u3]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+User@DESKTOP-L5DJIRE MINGW64 ~/Desktop/terraform/variables
+$
