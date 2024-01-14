@@ -1,0 +1,185 @@
+Creating and Managing VPCs with Terraform: A Step-by-Step Guide
+
+1)PROVIDER.TF
+
+   provider "aws" {
+    region = "us-west-2"
+    profile = "tf-naresh" 
+}
+
+
+2) MAIN.TF
+
+maresource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+   tags = {
+    Name = "main"
+   }
+}
+
+  
+resource "aws_subnet" "private_subnet-1" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.0.1.0/24"
+  availability_zone = "us-west-2a"
+
+  tags =  {
+    Name = "private_subnet1"
+  }
+  
+}
+
+resource "aws_subnet" "private_subnet-2" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.0.2.0/24"
+  availability_zone = "us-west-2a"
+
+  tags =  {
+    Name = "private_subnet2"
+  }
+  
+}
+
+resource "aws_subnet" "public_subnet1" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.0.3.0/24"
+  availability_zone = "us-west-2c"
+
+  tags =  {
+    Name = "public_subnet1"
+  }
+  
+}
+
+resource "aws_subnet" "public_subnet2" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.0.4.0/24"
+  availability_zone = "us-west-2d"
+
+  tags =  {
+    Name = "public_subnet2"
+  }
+  
+}
+
+resource "aws_internet_gateway" "demo-igw" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "demo_vpc_igw"
+  }  
+}
+
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name =  "public_route_table"
+  } 
+   
+}
+
+resource "aws_route" "public-route" {
+  route_table_id         = aws_route_table.public_route_table.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.demo-igw.id
+}
+
+resource "aws_route_table_association" "public_subnet1-association" {
+  subnet_id      = aws_subnet.public_subnet1.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+resource "aws_route_table_association" "public_subnet2-association" {
+  subnet_id      = aws_subnet.public_subnet2.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+resource "aws_eip" "nat-eip" {
+
+   tags = {
+      Name = "nat-eip"
+      }
+}
+
+resource "aws_nat_gateway" "nat-gateway" {
+  allocation_id = aws_eip.nat-eip.id
+  subnet_id     = aws_subnet.public_subnet1.id
+  tags = {
+      Name = "nat-gateway"
+      }
+}
+
+resource "aws_security_group" "web-sg" {
+  vpc_id = aws_vpc.main.id
+  name   = "web-sg"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "web-sg"
+  }
+}
+
+resource "aws_security_group" "db-sg" {
+  vpc_id = aws_vpc.main.id
+  name   = "db-sg"
+
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]  
+    # Allow traffic from private subnets
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "db-sg"
+  }
+}
+
+
+resource "aws_instance" "private-instance" {
+  ami           = "ami-0944e91aed79c721c"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.public_subnet1.id
+  tags = {
+    Name = "private-instance"
+  }
+}
+
+resource "aws_instance" "public-instance" {
+  ami           = "ami-0944e91aed79c721c"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.public_subnet1.id
+  tags = {
+    Name = "public-instance"
+  }
+}
+
+
+terraform init 
+terraform plan 
+terraform apply
+
+
+ you learned how to use Terraform to create a VPC on AWS.
+ This included creating a basic VPC, configuring internet access using an internet gateway, 
+and creating security groups to control inbound and outbound traffic.
